@@ -1,0 +1,99 @@
+📘 Mini SRS Document – FinSplit
+Version: 1.0
+Author: Changragupta (Guided by Chanakya)
+Date: June 2025
+
+🔹 1. Project Overview
+FinSplit is a backend-only fintech microservice designed to manage multi-user expenses, asynchronous reimbursements, and audit trails. It simulates real-world concurrency, financial accuracy, and production-grade error handling.
+
+🔹 2. Scope
+Enable users to register and manage financial accounts (wallets).
+
+Allow groups of users to record shared expenses.
+
+Handle automatic balance computation and debt allocation.
+
+Execute asynchronous reimbursements with retries and audit trail.
+
+Maintain ledger-style transaction history.
+
+Expose well-structured REST APIs for external integration.
+
+🔹 3. Functional Requirements
+✅ 3.1 User Management
+Create user with name, email, and initial wallet balance.
+
+Fetch user and wallet balance.
+
+API: POST /users, GET /users/{id}
+
+✅ 3.2 Expense Recording
+Create group expenses with shares among users.
+
+Calculate debt distribution automatically.
+
+API: POST /expenses
+
+✅ 3.3 Reimbursement Engine
+Automatically detect who owes whom.
+
+Initiate async reimbursements via CompletableFuture.
+
+Retry on failure (up to 3 times).
+
+API: POST /reimbursements/trigger
+
+✅ 3.4 Transaction Ledger
+Log every debit/credit with timestamps, amount, and status.
+
+API: GET /transactions?userId=xyz
+
+✅ 3.5 Admin Insights
+List of pending reimbursements
+
+API health check
+
+API: GET /admin/pending, GET /actuator/health
+
+🔸 4. Non-Functional Requirements
+Category	Specification
+Concurrency	Support for 1000+ concurrent reimbursement requests
+Latency	Reimbursement API should respond in < 300ms
+Error Recovery	Retry failed reimbursements with backoff (max 3 attempts)
+Security	Basic Auth (extendable to OAuth2)
+Logging	SLF4J with request trace IDs
+Scalability	Modular design to scale services separately
+Tech Stack	Spring Boot, Maven, Java 17, PostgreSQL, CompletableFuture, ExecutorService
+Thread Management	Custom ExecutorService via AsyncConfig
+Testing	JUnit, Mockito, MockMVC (80% coverage target)
+
+🔹 5. Architecture Summary
+Layered architecture: Controller → Service → Async/Repository
+
+DB Tables: users, expenses, expense_shares, transactions
+
+Async task engine (thread pool): ReimbursementExecutor.java
+
+DTO-based request/response mapping
+
+Failsafe logic with circuit-breaker potential (optional upgrade)
+
+🔹 6. Assumptions
+Each expense will be equally split unless specified.
+
+No real money transfer — simulated reimbursement.
+
+No frontend or mobile app — purely backend APIs.
+
+Environment: Dev → Staging → Prod (via Maven profiles)
+
+🧭 Optional Extensions (Future Roadmap)
+Redis caching for balances
+
+Kafka for reimbursement logs
+
+Swagger / OpenAPI documentation
+
+Dockerized PostgreSQL & Spring App
+
+Sentry/Grafana integration for monitoring
