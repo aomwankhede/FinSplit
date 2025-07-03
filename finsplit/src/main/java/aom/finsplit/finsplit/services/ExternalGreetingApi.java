@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -43,7 +44,12 @@ class ResponseFormat {
 public class ExternalGreetingApi {
     RestTemplate restTemplate = new RestTemplate();
     String url = "http://api.weatherapi.com/v1/current.json?key=KEY&q=CITY";
-    String KEY = "478010c3e16a4807a9d64300250307";
+
+    @Value("${weatherApi.key}")
+    String KEY;
+
+    @Value("${elvenLabApi.key}")
+    String KEY1;
 
     // This method is a placeholder for an external API call to get a greeting
     // message.
@@ -66,12 +72,11 @@ public class ExternalGreetingApi {
 
     public void generateDub(String messageToDub) throws JsonMappingException, JsonProcessingException {
         url = "https://api.murf.ai/v1/speech/generate";
-        KEY = "ap2_50cbf394-db87-4163-8243-b40976e2bd76";
 
         // Constructing Headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("api-key", KEY);
+        headers.set("api-key", KEY1);
 
         // Constructing Request Body
         Map<String, String> body = new HashMap<>();
