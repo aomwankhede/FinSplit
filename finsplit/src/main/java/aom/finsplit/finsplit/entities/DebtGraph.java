@@ -1,5 +1,12 @@
 package aom.finsplit.finsplit.entities;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +14,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.stereotype.Component;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 class Pair {
     public long id;
@@ -19,7 +29,7 @@ class Pair {
 }
 
 @Component
-public class DebtGraph {
+public class DebtGraph implements Serializable {
     private final Map<Long, Map<Long, Double>> graph = new HashMap<>();
     ReadWriteLock lock = new ReentrantReadWriteLock(true);
 
@@ -127,6 +137,43 @@ public class DebtGraph {
             return false;
         } finally {
             lock.writeLock().unlock();
+        }
+    }
+
+    @PostConstruct
+    public void init() {
+        File file = new File("./data/debtgraph.ser");
+        if (file.exists()) {
+            try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+                Map<Long, Map<Long, Double>> loaded = (Map<Long, Map<Long, Double>>) in.readObject();
+                lock.writeLock().lock();
+                graph.clear();
+                graph.putAll(loaded);
+                System.out.println("DebtGraph loaded from disk.");
+            } catch (Exception e) {
+                System.err.println("Failed to load DebtGraph: " + e.getMessage());
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+        else{
+            System.out.println("No saved DebtGraph found , starting fresh.");
+        }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        File dir = new File("./data");
+        if (!dir.exists())
+            dir.mkdirs();
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("./data/debtgraph.ser"))) {
+            lock.readLock().lock(); // Read lock is enough here
+            out.writeObject(graph);
+            System.out.println("DebtGraph saved to disk.");
+        } catch (IOException e) {
+            System.err.println("Failed to save DebtGraph: " + e.getMessage());
+        } finally {
+            lock.readLock().unlock();
         }
     }
 
