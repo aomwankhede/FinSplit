@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import aom.finsplit.finsplit.entities.ExpenseGroup;
+import aom.finsplit.finsplit.entities.User;
 import aom.finsplit.finsplit.services.ExpenseGroupService;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,9 +34,9 @@ public class ExpenseGroupController {
 
     @SuppressWarnings("unchecked")
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Map<String, ?> body) {
+    public ResponseEntity<?> create(@AuthenticationPrincipal User user,@RequestBody Map<String, ?> body) {
         try{
-            long creatorId = Long.parseLong(String.valueOf(body.get("creatorId")));
+            long creatorId = user.getId();
             List<Integer> othersInt = (List<Integer>)body.get("others");
             List<Long> others = othersInt.stream().map(id->(long)id).toList();
             List<Double> otherAmount;
@@ -53,9 +55,9 @@ public class ExpenseGroupController {
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable String id) {
-        boolean flag = expenseGroupService.delete(id);
+    @DeleteMapping
+    public ResponseEntity<?> delete(@AuthenticationPrincipal User user,@PathVariable String id) {
+        boolean flag = expenseGroupService.delete(id,user.getId());
         if (!flag) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Cant be deleted");
         }

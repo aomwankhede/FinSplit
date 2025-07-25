@@ -9,7 +9,7 @@
 
     <!-- File Appender -->
     <appender name="myFileAppender" class="ch.qos.logback.core.FileAppender">
-        <file>journalApp.log</file> 
+        <file>finsplit.log</file> 
         <!-- We neeed to give the path to the log folder where file will be created -->
         <append>true</append>
         <encoder>
@@ -24,5 +24,3 @@
     </root>
 
 </configuration>
-
-<!-- For specific sub package use Logger semantics and in it set name property to that package -->

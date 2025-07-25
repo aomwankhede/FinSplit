@@ -93,25 +93,25 @@ public class UserService {
         }
     }
 
-    public Boolean login(Map<String, String> user) {
+    public Optional<User> login(Map<String, String> user) {
         if ((!repository.existsByEmail(user.get("email"))) || (!repository.existsByUserName(user.get("userName")))) {
             log.info("Failed login attempt");
-            return false;
+            return Optional.empty();
         } else if (repository.existsByEmail(user.get("email"))) {
             User u1 = repository.findByEmail(user.get("email"));
             if (u1.getPassword().equals(user.get("password"))) {
                 log.info("User logged in successfully with email: {}", user.get("email"));
-                return true;
+                return Optional.of(u1);
             }
         } else if (repository.existsByUserName(user.get("userName"))) {
             User u1 = repository.findByUserName(user.get("userName"));
             if (u1.getPassword().equals(user.get("password"))) {
                 log.info("User logged in successfully with username: {}", user.get("userName"));
-                return true;
+                return Optional.of(u1);
             }
         }
         log.warn("Login failed for user with email: {} or username: {}", user.get("email"), user.get("userName"));
-        return false;
+        return Optional.empty();
     }
 
 }

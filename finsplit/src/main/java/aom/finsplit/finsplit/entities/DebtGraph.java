@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
 
 class Pair {
     public long id;
@@ -28,6 +29,7 @@ class Pair {
     }
 }
 
+@Slf4j
 @Component
 public class DebtGraph implements Serializable {
     private final Map<Long, Map<Long, Double>> graph = new HashMap<>();
@@ -60,7 +62,7 @@ public class DebtGraph implements Serializable {
             graph.get(fromUserId).put(toUserId, amount + graph.get(fromUserId).get(toUserId));
             return true;
         } catch (Exception e) {
-            System.out.println("Some error occured" + e.getMessage());
+            log.error(e.getMessage(), e);
             return false;
         } finally {
             lock.writeLock().unlock();
@@ -111,29 +113,24 @@ public class DebtGraph implements Serializable {
         try {
             lock.writeLock().lock();
             if (!graph.containsKey(fromUserId) || !graph.get(fromUserId).containsKey(toUserId)) {
-                System.out.println("No debt to pay!");
+                log.info("No debt to pay!");
             } else {
-                System.out.println("Hello1");
                 double weight = graph.get(fromUserId).get(toUserId);
                 if (amount == weight) {
-                    System.out.println("Hello2");
                     graph.get(fromUserId).remove(toUserId);
                     if (graph.get(fromUserId).size() == 0) {
-                        System.out.println("Hello3");
                         graph.remove(fromUserId);
                     }
                 } else if (amount < weight) {
-                    System.out.println("HelloImp");
                     graph.get(fromUserId).put(toUserId, weight - amount);
                 } else {
-                    System.out.println("PingPong");
                     graph.get(fromUserId).remove(toUserId);
                     addDebt(toUserId, fromUserId, amount - weight);
                 }
             }
             return true;
         } catch (Exception e) {
-            System.out.println("Error Occured :" + e.getMessage());
+            log.error(e.getMessage(),e);
             return false;
         } finally {
             lock.writeLock().unlock();
@@ -149,15 +146,15 @@ public class DebtGraph implements Serializable {
                 lock.writeLock().lock();
                 graph.clear();
                 graph.putAll(loaded);
-                System.out.println("DebtGraph loaded from disk.");
+                log.info("DebtGraph loaded from disk.");
             } catch (Exception e) {
-                System.err.println("Failed to load DebtGraph: " + e.getMessage());
+                log.error("Failed to load DebtGraph: " + e.getMessage());
             } finally {
                 lock.writeLock().unlock();
             }
         }
         else{
-            System.out.println("No saved DebtGraph found , starting fresh.");
+            log.info("No saved DebtGraph found , starting fresh.");
         }
     }
 
@@ -169,9 +166,9 @@ public class DebtGraph implements Serializable {
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("./data/debtgraph.ser"))) {
             lock.readLock().lock(); // Read lock is enough here
             out.writeObject(graph);
-            System.out.println("DebtGraph saved to disk.");
+            log.info("DebtGraph saved to disk.");
         } catch (IOException e) {
-            System.err.println("Failed to save DebtGraph: " + e.getMessage());
+            log.error("Failed to save DebtGraph: " + e.getMessage());
         } finally {
             lock.readLock().unlock();
         }

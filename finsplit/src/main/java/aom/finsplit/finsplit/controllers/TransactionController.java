@@ -6,10 +6,12 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import aom.finsplit.finsplit.entities.DebtGraph;
+import aom.finsplit.finsplit.entities.User;
 import aom.finsplit.finsplit.services.TransactionService;
 import aom.finsplit.finsplit.services.UserService;
 import jakarta.transaction.Transactional;
@@ -17,7 +19,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/transaction")
@@ -40,9 +41,9 @@ public class TransactionController {
 
     @PostMapping("/post-processing")
     @Transactional
-    public ResponseEntity<?> postTransactionProcessing(@RequestBody Map<String, String> body) {
-        long creatorId = Long.parseLong(body.get("creatorId"));
-        long othersId = Long.parseLong(body.get("othersId"));
+    public ResponseEntity<?> postTransactionProcessing(@AuthenticationPrincipal User user,@RequestBody Map<String, String> body) {
+        long creatorId = user.getId(); // who is going to pay
+        long othersId = Long.parseLong(body.get("othersId"));  // The beneficiary
         double amount = Double.parseDouble(body.get("amount"));
         boolean result = "true".equals(body.get("result"));
         boolean success = transationService.create(creatorId, othersId, amount, result);
@@ -71,15 +72,15 @@ public class TransactionController {
         }
     }
 
-    @GetMapping("/get-money/{id}")
-    public ResponseEntity<?> toGetMoney(@PathVariable long id) {
+    @GetMapping("/get-money")
+    public ResponseEntity<?> toGetMoney(@AuthenticationPrincipal User user) {
         // Debt is not a table
-        return ResponseEntity.status(HttpStatus.OK).body(debtGraph.getDebtsByUser(id));
+        return ResponseEntity.status(HttpStatus.OK).body(debtGraph.getDebtsByUser(user.getId()));
     }
 
-    @GetMapping("/give-money/{id}")
-    public ResponseEntity<?> toGiveMoney(@PathVariable long id) {
+    @GetMapping("/give-money")
+    public ResponseEntity<?> toGiveMoney(@AuthenticationPrincipal User user) {
         // Debt is not a table
-        return ResponseEntity.status(HttpStatus.OK).body(debtGraph.getOwesById(id));
+        return ResponseEntity.status(HttpStatus.OK).body(debtGraph.getOwesById(user.getId()));
     }
 }

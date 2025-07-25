@@ -60,10 +60,10 @@ public class ExpenseGroupService {
     }
 
     @Transactional
-    public boolean delete(String id) {
+    public boolean delete(String id,Long userId) {
         try {
             Optional<ExpenseGroup> e = expenseGroupRepository.findById(id);
-            if (e.isEmpty()) {
+            if (e.isEmpty() || e.get().getCreator().getId() != userId) {
                 return false;
             }
             ExpenseGroup e1 = e.get();

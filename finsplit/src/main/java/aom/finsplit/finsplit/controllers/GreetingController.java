@@ -1,12 +1,14 @@
 package aom.finsplit.finsplit.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import aom.finsplit.finsplit.entities.User;
 import aom.finsplit.finsplit.services.ExternalGreetingApi;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,8 +20,8 @@ public class GreetingController {
     ExternalGreetingApi externalGreetingApi;
 
     @GetMapping("/{city}")
-    public String getGreeting(@PathVariable String city) {
-        return externalGreetingApi.getGreeting(city);
+    public String getGreeting(@AuthenticationPrincipal User user,@PathVariable String city) {
+        return externalGreetingApi.getGreeting(city,user.getUsername());
     }
     
     @GetMapping("dub/{message}")

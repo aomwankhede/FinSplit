@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import aom.finsplit.finsplit.DTO.DTO2;
+import lombok.extern.slf4j.Slf4j;
 
 class ResponseFormat {
     private int temperature;
@@ -40,6 +41,7 @@ class ResponseFormat {
     }
 }
 
+@Slf4j
 @Service
 public class ExternalGreetingApi {
     RestTemplate restTemplate = new RestTemplate();
@@ -53,7 +55,7 @@ public class ExternalGreetingApi {
 
     // This method is a placeholder for an external API call to get a greeting
     // message.
-    public String getGreeting(String CITY) {
+    public String getGreeting(String CITY,String username) {
         try {
             String processedUrl = url.replace("KEY", KEY).replace("CITY", CITY);
             ResponseEntity<DTO2> res = restTemplate.exchange(processedUrl, HttpMethod.GET, null, DTO2.class);
@@ -63,7 +65,7 @@ public class ExternalGreetingApi {
             }
             System.out.println(resp);
             ResponseFormat response = new ResponseFormat((int) resp.getCurrent().getTempC());
-            return response.getMessage();
+            return "Hey " + username + " " +response.getMessage();
         } catch (Exception e) {
             System.out.println("Error fetching weather data: " + e.getMessage());
             return "Error fetching weather data. Please try again later.";
@@ -92,7 +94,7 @@ public class ExternalGreetingApi {
                     request,
                     String.class);
             String audioUrl = new ObjectMapper().readTree(response.getBody()).get("audioFile").asText();
-            System.out.println("Audio URL: " + audioUrl);
+            log.info("Audio Url:",audioUrl);
         } catch (RestClientException | URISyntaxException e) {
             e.printStackTrace();
         }
