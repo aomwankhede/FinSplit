@@ -1,6 +1,7 @@
 package aom.finsplit.finsplit.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import aom.finsplit.finsplit.entities.User;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:5173",methods = {RequestMethod.GET,RequestMethod.POST})
 @RequestMapping("/users")
 public class UserController {
     @Autowired
@@ -39,8 +41,8 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getUserFromID(@RequestParam String param) {
-        return ResponseEntity.status(HttpStatus.OK).body(userService.getUserFromID(Long.parseLong(param)));
+    public ResponseEntity<?> getUserFromID(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
     @PostMapping("/auth/signup")

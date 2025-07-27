@@ -31,7 +31,6 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String jwt = authHeader.substring(7);
             Optional<Map<String, String>> optionalMap = jwtService.verifyAndGet(jwt);
@@ -42,8 +41,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 User user = userService.getUserFromID(id).orElse(null);
 
                 if (user != null) {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null,
+                            new ArrayList<>());
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
